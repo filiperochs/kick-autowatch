@@ -1,0 +1,29 @@
+{
+  "manifest_version": 2,
+  "name": "Kick AutoWatch",
+  "version": "1.0.0",
+  "description": "Keeps a Kick live open (auto-switches when the stream goes offline) and auto-claims daily rewards and the Sunset Reward Case.",
+  "author": "Filipe Rocha",
+  "homepage_url": "https://github.com/filiperochs/kick-autowatch",
+  "icons": { "48": "icons/icon.svg", "96": "icons/icon.svg" },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "kick-autowatch@filiperochs",
+      "strict_min_version": "109.0"
+    }
+  },
+  "permissions": ["storage", "*://kick.com/*", "*://*.kick.com/*"],
+  "background": { "scripts": ["background.js"] },
+  "content_scripts": [
+    {
+      "matches": ["*://kick.com/*", "*://*.kick.com/*"],
+      "js": ["selectors.js", "content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "browser_action": {
+    "default_icon": "icons/icon.svg",
+    "default_title": "Kick AutoWatch",
+    "default_popup": "popup/popup.html"
+  }
+}

@@ -1,0 +1,28 @@
+<!doctype html><meta charset="utf-8"><title>popup harness</title>
+<link rel="stylesheet" href="/__src/popup/popup.css">
+<style>html{background:#333}</style>
+<script>
+/* Stub of the WebExtension API so the REAL popup.html/css/js can be rendered and screenshotted over http. */
+const now = Date.now();
+const store = { enabled: true, autoSwitch: true, autoClaim: true, language: "en",
+  fallbackChannels: ["streamer1", "streamer2"], blockedChannels: [], claimedCount: 3, switchCount: 2,
+  log: [
+    { t: now - 3600e3, m: "Active on alpha" },
+    { t: now - 2400e3, m: 'Opened rewards panel via "Sunset Reward Case"' },
+    { t: now - 2390e3, m: 'Clicked claim button "Open case" (dialog)' },
+    { t: now - 900e3,  m: "Switching alpha -> bravo [alpha is offline; featured (en), 500 viewers]" },
+    { t: now - 60e3,   m: 'Clicked claim button "Claim reward" (dialog)' } ] };
+window.browser = {
+  storage: { local: { get: async () => ({ ...store }), set: async (o) => Object.assign(store, o) },
+             onChanged: { addListener() {} } },
+  tabs: { query: async () => [{ id: 1, active: true, currentWindow: true }],
+          sendMessage: async () => ({ slug: "bravo", live: true, playing: true, enabled: true }) },
+};
+</script>
+<body><script>
+fetch("/__src/popup/popup.html").then(r => r.text()).then(h => {
+  document.body.innerHTML = new DOMParser().parseFromString(h, "text/html").body.innerHTML
+    .replace(/<script[^>]*><\/script>/g, "").replaceAll("../icons/", "/__src/icons/");
+  const s = document.createElement("script"); s.src = "/__src/popup/popup.js"; document.body.append(s);
+});
+</script>

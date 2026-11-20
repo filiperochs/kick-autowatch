@@ -1,0 +1,5 @@
+dist-test/
+__pycache__/
+*.pyc
+node_modules/
+web-ext-artifacts/

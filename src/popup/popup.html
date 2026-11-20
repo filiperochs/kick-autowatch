@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <div class="brand"><img src="../icons/icon.svg" width="28" height="28" alt=""><div><h1>Kick AutoWatch</h1><p id="status">…</p></div></div>
+    <label class="switch" title="Enable / disable"><input type="checkbox" id="enabled"><span class="slider"></span></label>
+  </header>
+
+  <section class="stats">
+    <div><b id="claimed">0</b><span>claims clicked</span></div>
+    <div><b id="switches">0</b><span>live switches</span></div>
+  </section>
+
+  <section>
+    <label class="row"><input type="checkbox" id="autoSwitch"> Keep a live open (auto-switch when offline)</label>
+    <label class="row"><input type="checkbox" id="autoClaim"> Auto-claim daily rewards &amp; Sunset Reward Case</label>
+    <label class="field">Preferred language
+      <select id="language">
+        <option value="en">English</option><option value="pt">Português</option>
+        <option value="es">Español</option><option value="fr">Français</option>
+        <option value="de">Deutsch</option><option value="ru">Русский</option>
+        <option value="tr">Türkçe</option><option value="it">Italiano</option>
+      </select>
+    </label>
+    <label class="field">Favourite channels (tried first, one per line)
+      <textarea id="fallbackChannels" rows="2" placeholder="channel1&#10;channel2"></textarea>
+    </label>
+    <label class="field">Never switch to (one per line)
+      <textarea id="blockedChannels" rows="2"></textarea>
+    </label>
+  </section>
+
+  <section class="actions">
+    <button id="startNow">Watch a live now</button>
+    <button id="claimNow">Claim check now</button>
+    <button id="dump" class="ghost">Copy diagnostics</button>
+  </section>
+
+  <section>
+    <h2>Activity</h2>
+    <ul id="log"></ul>
+  </section>
+  <script src="popup.js"></script>
+</body>
+</html>
