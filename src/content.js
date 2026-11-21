@@ -137,13 +137,10 @@
     for (const b of document.querySelectorAll("button, [role=button]")) {
       if (!visible(b) || disabled(b)) continue;
       const t = labelOf(b);
-      if (t.length < 40 && C.matureWords.test(t) && !C.denyWords.test(t)) {
-        const scope = b.closest("[role=dialog], [class*=overlay], [class*=mature], [class*=modal]");
-        if (scope && /mature|18\+|age/i.test(scope.innerText || "")) {
-          click(b);
-          log(`Dismissed mature-content gate ("${t}")`);
-          return true;
-        }
+      if (t.length < 50 && C.matureWords.test(t) && !C.denyWords.test(t)) {
+        click(b);
+        log(`Dismissed mature-content gate ("${t}")`);
+        return true;
       }
     }
     return false;
@@ -194,6 +191,7 @@
     }
     // 2) standalone claim buttons that are themselves reward-flavoured
     for (const b of clickables(document)) {
+      if (b.getAttribute("aria-haspopup")) continue; // that's a panel trigger, handled by findTrigger()
       const t = labelOf(b);
       if (t.length < 60 && C.claimWords.test(t) && !C.denyWords.test(t)
           && (C.rewardWords.test(t) || C.rewardWords.test(hintOf(b)))) return { el: b, where: "inline", t };
@@ -216,14 +214,24 @@
     return null;
   }
 
-  function closeOurDialogs() {
-    for (const d of dialogs()) {
-      if (!C.rewardWords.test(d.innerText || "")) continue;
-      const x = [...d.querySelectorAll("button, [role=button]")].find((b) =>
-        /close|fechar|dismiss|×|✕|^x$/i.test(labelOf(b)));
-      if (x) click(x);
+  // The rewards dialog on kick.com is a carousel (Sunset Reward Case -> Daily Reward -> ...).
+  function rewardDialog() {
+    return dialogs().find((d) => C.rewardWords.test(d.innerText || "") && !/cookie/i.test(d.innerText || ""));
+  }
+  function closeRewardDialog() {
+    const d = rewardDialog();
+    if (d) {
+      const x = [...d.querySelectorAll("button, [role=button]")].find((b) => C.closeWords.test(labelOf(b)) ||
+        C.closeWords.test(b.getAttribute("aria-label") || ""));
+      if (x) { click(x); return; }
     }
     document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+  }
+  function nextSlide(d) {
+    const n = [...d.querySelectorAll("button, [role=button]")].find((b) =>
+      visible(b) && !disabled(b) && C.nextSlideWords.test(b.getAttribute("aria-label") || ""));
+    if (n) click(n);
+    return !!n;
   }
 
   async function scanClaims() {
@@ -232,16 +240,28 @@
       if (Date.now() - run.lastClaimAt < 4000 || claimed.has(found.el)) return;
       claimed.add(found.el);
       run.lastClaimAt = Date.now();
+      const title = norm((found.el.closest("[role=dialog]") || document.body).innerText).slice(0, 60);
       click(found.el);
-      await log(`Clicked claim button "${found.t}" (${found.where})`);
-      await bump("claimedCount");
-      setTimeout(closeOurDialogs, 12000); // let the roulette animation finish
+      await log(`Clicked claim button "${found.t}" (${found.where}) | ${title}`);
+      if (found.where === "dialog") await bump("claimedCount");
+      run.slidesSeen = 0;
+      setTimeout(closeRewardDialog, 12000); // let the opening animation finish
       return;
     }
-    if (dialogs().some((d) => C.rewardWords.test(d.innerText || ""))) return; // already open, nothing claimable
+    const d = rewardDialog();
+    if (d) {
+      // Panel is open but nothing claimable on this slide: look at the other slides, then close it.
+      run.slidesSeen = (run.slidesSeen || 0) + 1;
+      if (run.slidesSeen <= 6 && nextSlide(d)) return;
+      await log("Rewards panel: nothing claimable right now (locked or already claimed); closing.");
+      run.slidesSeen = 0;
+      closeRewardDialog();
+      return;
+    }
     const trig = findTrigger();
     if (trig) {
       run.triggerClicks.set(trig.key, Date.now());
+      run.slidesSeen = 0;
       click(trig.el);
       await log(`Opened rewards panel via "${trig.key.slice(0, 40)}"`);
     }
@@ -320,6 +340,8 @@
     if (msg.type === "claimNow") return scanClaims().then(() => ({ ok: true }));
     if (msg.type === "dump") return Promise.resolve(dump());
   });
+
+  // @test-hook
 
   loadSettings().then(() => { if (S.enabled) log(`Active on ${currentSlug() || location.pathname}`); });
 })();

@@ -12,17 +12,22 @@ PAGE = """<!doctype html><html><head><title>{slug} - Kick (mock)</title><style>
 body{{font:14px sans-serif;background:#111;color:#eee;margin:0}} header{{display:flex;gap:12px;padding:10px;background:#1b1f20}}
 #dlg{{position:fixed;top:80px;right:20px;background:#222;padding:16px;border:1px solid #53fc18;width:260px}}
 video{{width:640px;height:360px;background:#000}}</style></head><body>
-<header><b>KICK (mock)</b><button aria-label="Sunset Reward Case" id="case">Sunset Reward Case</button>
+<header><b>KICK (mock)</b><button aria-label="Resgate sua recompensa" aria-haspopup="dialog" id="case">&#127873;</button>
 <button id="sub">Subscribe</button><span>avatar</span></header>
 <main><h2>{slug}</h2><video id="v" muted loop></video>{offline}</main>
 <script>
-window.__claims=0;
+/* mimics the real kick.com rewards dialog: carousel [Sunset Reward Case (locked) -> Daily Reward (claimable)] */
 document.getElementById('case').onclick=()=>{{
   if(document.getElementById('dlg'))return;
   const d=document.createElement('div');d.id='dlg';d.setAttribute('role','dialog');
-  d.innerHTML='<h3>Sunset Reward Case</h3><p>Your case is ready</p><button id="claim">Open case</button><button aria-label="Close">x</button>';
+  d.style.cssText='position:fixed;top:80px;right:20px;background:#222;padding:16px;border:1px solid #53fc18;width:300px';
+  d.innerHTML='<h3>Resgate suas recompensas</h3><button aria-label="Close">x</button>'+
+   '<div id="s1"><b>Sunset Reward Case</b><p>Watch any stream for 3 hours</p><button aria-disabled="true">Resgatar</button><p>Assista por mais 44 minutos para resgatar.</p></div>'+
+   '<div id="s2" style="display:none"><b>Daily Reward</b><p>Claim your Daily Reward</p><button id="claim">Resgatar</button></div>'+
+   '<button aria-label="Próxima recompensa" id="nx">&gt;</button>';
   document.body.append(d);
-  d.querySelector('#claim').onclick=()=>{{fetch('/__claim',{{method:'POST'}});window.__claims++;d.querySelector('p').textContent='You won an emote!';}};
+  d.querySelector('#nx').onclick=()=>{{d.querySelector('#s1').style.display='none';d.querySelector('#s2').style.display='block';}};
+  d.querySelector('#claim').onclick=()=>{{fetch('/__claim',{{method:'POST'}});const c=d.querySelector('#claim');c.textContent='Ver';c.id='';}};
   d.querySelector('[aria-label=Close]').onclick=()=>d.remove();
 }};
 </script></body></html>"""
@@ -35,7 +40,7 @@ class H(BaseHTTPRequestHandler):
     def send(self, body, ctype="application/json", code=200):
         b = body.encode() if isinstance(body, str) else body
         self.send_response(code)
-        self.send_header("Content-Type", ctype)
+        self.send_header("Content-Type", ctype + ("; charset=utf-8" if ctype.startswith("text/") else ""))
         self.send_header("Content-Length", str(len(b)))
         self.end_headers()
         self.wfile.write(b)

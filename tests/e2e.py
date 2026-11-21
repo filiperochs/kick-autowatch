@@ -99,9 +99,11 @@ def main():
         # 2. toggle ON -> auto-claim
         ext_storage(d, {"enabled": True})
         d.get(BASE + "/alpha")
-        check("ON: reward panel opened + 'Open case' clicked", wait(lambda: state()["claims"] >= 1),
+        check("ON: panel opened, locked Sunset slide skipped, Daily 'Resgatar' clicked", wait(lambda: state()["claims"] >= 1),
               f"claims={state()['claims']}")
         shot(d, "auto-claim.png", (1100, 560))
+        time.sleep(1)
+        check("reward panel closed afterwards", wait(lambda: not d.find_elements(By.ID, "dlg"), 20))
         n = state()["claims"]
         time.sleep(4)
         check("claim is not spammed", state()["claims"] - n <= 1, f"{n}->{state()['claims']}")

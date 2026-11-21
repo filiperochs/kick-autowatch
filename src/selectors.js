@@ -19,14 +19,18 @@ window.KAW_CFG = {
 
   // Text on the button that actually claims / opens.
   claimWords:
-    /^\s*(claim|collect|open|redeem|get reward|resgatar|coletar|abrir|reivindicar|reclamar|recoger|abrir caja)\b/i,
+    /^\s*(claim|collect|open|redeem|get reward|resgatar|resgate|coletar|abrir|reivindicar|reclamar|recoger|abrir caja)\b/i,
 
   // Never click anything whose text matches this.
   denyWords:
     /(subscribe|subscription|gift|buy|purchase|follow|assinar|comprar|presente|donate|tip|cancel|report|block|ban)/i,
 
   // "Are you 18+?" style gates in front of the video.
-  matureWords: /(start watching|i am 18|i'm 18|18\+|continue|confirm|iniciar|tenho 18)/i,
+  matureWords: /(i am 18|i'm 18|18\+|18 anos|tenho 18|start watching|iniciar)/i,
+
+  // Carousel arrow inside the rewards dialog (Sunset Case -> Daily Reward -> ...).
+  nextSlideWords: /(pr[oó]xim[ao]|next)/i,
+  closeWords: /^(close|fechar|dismiss)$/i,
 
   // Hint attributes searched for reward triggers.
   triggerAttrs: ["aria-label", "title", "data-testid", "id", "class", "alt"],
@@ -41,6 +45,6 @@ window.KAW_CFG = {
   liveCheckMs: 20000,
   offlineChecksBeforeSwitch: 2,
   claimScanMs: 6000,
-  triggerCooldownMs: 120000,
+  triggerCooldownMs: 300000,
   stallReloadMs: 90000,
 };

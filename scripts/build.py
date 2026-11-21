@@ -11,6 +11,7 @@ SRC = ROOT / "src"
 
 
 def main():
+    live = "--live" in sys.argv
     test = "--test" in sys.argv
     manifest = json.loads((SRC / "manifest.json").read_text(encoding="utf-8"))
 
@@ -37,6 +38,22 @@ def main():
                     " if (t === 'set') await browser.storage.local.set(e.data.data);"
                     " window.postMessage({ kawResult: await browser.storage.local.get(null) }, '*'); });\n")
         print("test build ->", out)
+        return
+
+    if live:  # real kick.com, normal timers, plus a debugging hook (never shipped)
+        out = ROOT / "dist-live"
+        shutil.rmtree(out, ignore_errors=True)
+        shutil.copytree(SRC, out)
+        hook = (
+            "window.addEventListener('message', async (e) => { const t = e.data && e.data.kawTest; if (!t) return;"
+            " let r = {}; if (t === 'set') await browser.storage.local.set(e.data.data);"
+            " if (t === 'dump') r = dump(); if (t === 'claim') { await scanClaims(); }"
+            " r.storage = await browser.storage.local.get(null);"
+            " window.postMessage({ kawResult: JSON.parse(JSON.stringify(r)) }, '*'); });"
+        )
+        c = (out / "content.js").read_text(encoding="utf-8").replace("// @test-hook", hook, 1)
+        (out / "content.js").write_text(c, encoding="utf-8")
+        print("live build ->", out)
         return
 
     out = ROOT / "dist"

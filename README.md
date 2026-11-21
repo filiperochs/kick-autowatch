@@ -25,7 +25,7 @@ O Firefox estável só instala extensões **assinadas** pela Mozilla. Duas forma
 - **Assinar (grátis, não publica):** crie chaves em <https://addons.mozilla.org/developers/addon/api/key/> e rode  
   `npx web-ext sign --source-dir src --channel unlisted --api-key <JWT issuer> --api-secret <JWT secret>`  
   O `.xpi` assinado instala com *arrastar para o Firefox* e é permanente.
-- **Firefox Developer Edition / Nightly / ESR:** em `about:config` defina `xpinstall.signatures.required = false` e instale `dist/kick-autowatch-1.0.0.xpi` em `about:addons` → engrenagem → *Instalar a partir de arquivo*.
+- **Firefox Developer Edition / Nightly / ESR:** em `about:config` defina `xpinstall.signatures.required = false` e instale `dist/kick-autowatch-1.1.0.xpi` em `about:addons` → engrenagem → *Instalar a partir de arquivo*.
 
 ## Uso
 1. Abra uma live na Kick (e faça login – as recompensas exigem conta).
@@ -45,12 +45,13 @@ Veja [docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md). Resumo:
 ```bash
 python scripts/build.py          # gera dist/kick-autowatch-<versão>.xpi
 pip install selenium
-python tests/e2e.py --shots      # Firefox real + Kick falso (12 checagens) e regenera os prints
+python tests/e2e.py --shots      # Firefox real + Kick falso (13 checagens) e regenera os prints
 ```
 Estrutura: `src/` (extensão), `tests/` (mock + e2e), `scripts/` (build), `docs/`.
 
 ## Limitações
-- **Não testado contra a Kick real logado.** A Kick não tem API pública para claim; o claim é feito clicando na interface, com heurísticas de texto/atributos. Se a Kick mudar o markup, ajuste `src/selectors.js` (e use *Copy diagnostics* para ver o que a extensão enxerga). Os endpoints de live foram verificados contra a Kick real.
+- **Verificado na Kick real (conta logada, interface em português):** a extensão abriu o painel *Resgate suas recompensas* (botão `aria-label="Resgate sua recompensa"`), clicou em *Resgatar* e a **Daily Reward foi resgatada**. O painel é um carrossel (Sunset Reward Case → Daily Reward); a extensão percorre as páginas e fecha o painel quando nada está liberado. Botões bloqueados (`aria-disabled="true"`, "Assista por mais N minutos") são ignorados.
+- **Ainda não visto ao vivo:** o clique final no *Sunset Reward Case* (estava a ~44 min de liberar durante o teste) e o texto exato do botão depois de liberado. Se a Kick mudar o markup ou o texto, ajuste `src/selectors.js` (use *Copy diagnostics* para ver o que a extensão enxerga).
 - O Sunset Reward Case exige 3 h assistindo por dia; a aba precisa ficar aberta com o vídeo tocando.
 - Automatizar cliques pode contrariar os termos da Kick; use por sua conta e risco. Projeto não afiliado à Kick.
 
